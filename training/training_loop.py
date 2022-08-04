@@ -430,6 +430,8 @@ def training_loop(
                                for z, c in zip(grid_z, grid_c)]).numpy()
             save_image_grid(images, os.path.join(
                 run_dir, f'fakes{cur_nimg//1000:06d}.png'), drange=[-1, 1], grid_size=grid_size)
+            ddbox.upload(os.path.join(
+                run_dir, f'fakes{cur_nimg//1000:06d}.png'))
 
         # Save network snapshot.
         snapshot_pkl = None

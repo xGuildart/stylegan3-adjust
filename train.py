@@ -197,9 +197,9 @@ def main(**kwargs):
     python train.py --outdir=~/training-runs --cfg=stylegan2 --data=~/datasets/ffhq-1024x1024.zip \\
         --gpus=8 --batch=32 --gamma=10 --mirror=1 --aug=noaug
     """
-    print("here1")
+
     # Initialize config.
-    print("bis")
+
     opts = dnnlib.EasyDict(kwargs)  # Command line arguments.
     c = dnnlib.EasyDict()  # Main config dict.
     c.G_kwargs = dnnlib.EasyDict(
@@ -212,7 +212,7 @@ def main(**kwargs):
         class_name='torch.optim.Adam', betas=[0, 0.99], eps=1e-8)
     c.loss_kwargs = dnnlib.EasyDict(class_name='training.loss.StyleGAN2Loss')
     c.data_loader_kwargs = dnnlib.EasyDict(pin_memory=False, prefetch_factor=2)
-    print("here2")
+
     # Training set.
     c.training_set_kwargs, dataset_name = init_dataset_kwargs(data=opts.data)
     if opts.cond and not c.training_set_kwargs.use_labels:
@@ -220,7 +220,7 @@ def main(**kwargs):
             '--cond=True requires labels specified in dataset.json')
     c.training_set_kwargs.use_labels = opts.cond
     c.training_set_kwargs.xflip = opts.mirror
-    print("here3")
+
     # Hyperparameters & settings.
     c.num_gpus = opts.gpus
     c.batch_size = opts.batch
@@ -242,7 +242,7 @@ def main(**kwargs):
     c.image_snapshot_ticks = c.network_snapshot_ticks = opts.snap
     c.random_seed = c.training_set_kwargs.random_seed = opts.seed
     c.data_loader_kwargs.num_workers = opts.workers
-    print("here4")
+
     # Sanity checks.
     gpus_ = c.num_gpus if c.num_gpus > 0 else 1
 
@@ -257,7 +257,7 @@ def main(**kwargs):
     if any(not metric_main.is_valid_metric(metric) for metric in c.metrics):
         raise click.ClickException('\n'.join(
             ['--metrics can only contain the following values:'] + metric_main.list_valid_metrics()))
-    print("here5")
+
     # Base configuration.
     c.ema_kimg = c.batch_size * 10 / 32
     if opts.cfg == 'stylegan2':

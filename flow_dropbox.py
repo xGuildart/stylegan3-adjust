@@ -33,3 +33,11 @@ class flow_ddbox:
             dbx.users_get_current_account()
             print("Successfully set up client!")
             os.environ["API_KEY"] = oauth_result.access_token
+
+
+def main():
+    flow_ddbox.run()
+
+
+if __name__ == '__main__':
+    main()

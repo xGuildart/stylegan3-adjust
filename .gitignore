@@ -1,0 +1,4 @@
+.env
+test_upload.txt
+*/__pycache__/
+__pycache__

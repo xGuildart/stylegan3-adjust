@@ -24,29 +24,35 @@ from torch_utils import custom_ops
 from torch_utils import misc
 from torch_utils.ops import conv2d_gradfix
 
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+
 
 def subprocess_fn(rank, args, temp_dir):
     dnnlib.util.Logger(should_flush=True)
 
     # Init torch.distributed.
     if args.num_gpus > 1:
-        init_file = os.path.abspath(os.path.join(temp_dir, '.torch_distributed_init'))
+        init_file = os.path.abspath(os.path.join(
+            temp_dir, '.torch_distributed_init'))
         if os.name == 'nt':
             init_method = 'file:///' + init_file.replace('\\', '/')
-            torch.distributed.init_process_group(backend='gloo', init_method=init_method, rank=rank, world_size=args.num_gpus)
+            torch.distributed.init_process_group(
+                backend='gloo', init_method=init_method, rank=rank, world_size=args.num_gpus)
         else:
             init_method = f'file://{init_file}'
-            torch.distributed.init_process_group(backend='nccl', init_method=init_method, rank=rank, world_size=args.num_gpus)
+            torch.distributed.init_process_group(
+                backend='nccl', init_method=init_method, rank=rank, world_size=args.num_gpus)
 
     # Init torch_utils.
-    sync_device = torch.device('cuda', rank) if args.num_gpus > 1 else None
+    sync_device = torch.device('cuda', rank) if args.num_gpus > 1 else (
+        torch.device('cpu') if args.num_gpus == 0 else None)
     training_stats.init_multiprocessing(rank=rank, sync_device=sync_device)
     if rank != 0 or not args.verbose:
         custom_ops.verbosity = 'none'
 
     # Configure torch.
-    device = torch.device('cuda', rank)
+    device = torch.device(
+        'cuda', rank) if args.num_gpus > 0 else torch.device('cpu')
     torch.backends.cuda.matmul.allow_tf32 = False
     torch.backends.cudnn.allow_tf32 = False
     conv2d_gradfix.enabled = True
@@ -64,9 +70,10 @@ def subprocess_fn(rank, args, temp_dir):
             print(f'Calculating {metric}...')
         progress = metric_utils.ProgressMonitor(verbose=args.verbose)
         result_dict = metric_main.calc_metric(metric=metric, G=G, dataset_kwargs=args.dataset_kwargs,
-            num_gpus=args.num_gpus, rank=rank, device=device, progress=progress)
+                                              num_gpus=args.num_gpus, rank=rank, device=device, progress=progress)
         if rank == 0:
-            metric_main.report_metric(result_dict, run_dir=args.run_dir, snapshot_pkl=args.network_pkl)
+            metric_main.report_metric(
+                result_dict, run_dir=args.run_dir, snapshot_pkl=args.network_pkl)
         if rank == 0 and args.verbose:
             print()
 
@@ -74,7 +81,8 @@ def subprocess_fn(rank, args, temp_dir):
     if rank == 0 and args.verbose:
         print('Exiting...')
 
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+
 
 def parse_comma_separated_list(s):
     if isinstance(s, list):
@@ -83,7 +91,8 @@ def parse_comma_separated_list(s):
         return []
     return s.split(',')
 
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+
 
 @click.command()
 @click.pass_context
@@ -93,7 +102,6 @@ def parse_comma_separated_list(s):
 @click.option('--mirror', help='Enable dataset x-flips  [default: look up]', type=bool, metavar='BOOL')
 @click.option('--gpus', help='Number of GPUs to use', type=int, default=1, metavar='INT', show_default=True)
 @click.option('--verbose', help='Print optional information', type=bool, default=True, metavar='BOOL', show_default=True)
-
 def calc_metrics(ctx, network_pkl, metrics, data, mirror, gpus, verbose):
     """Calculate quality metrics for previous training run or pretrained network pickle.
 
@@ -129,9 +137,11 @@ def calc_metrics(ctx, network_pkl, metrics, data, mirror, gpus, verbose):
     dnnlib.util.Logger(should_flush=True)
 
     # Validate arguments.
-    args = dnnlib.EasyDict(metrics=metrics, num_gpus=gpus, network_pkl=network_pkl, verbose=verbose)
+    args = dnnlib.EasyDict(metrics=metrics, num_gpus=gpus,
+                           network_pkl=network_pkl, verbose=verbose)
     if not all(metric_main.is_valid_metric(metric) for metric in args.metrics):
-        ctx.fail('\n'.join(['--metrics can only contain the following values:'] + metric_main.list_valid_metrics()))
+        ctx.fail('\n'.join(
+            ['--metrics can only contain the following values:'] + metric_main.list_valid_metrics()))
     if not args.num_gpus >= 1:
         ctx.fail('--gpus must be at least 1')
 
@@ -142,13 +152,15 @@ def calc_metrics(ctx, network_pkl, metrics, data, mirror, gpus, verbose):
         print(f'Loading network from "{network_pkl}"...')
     with dnnlib.util.open_url(network_pkl, verbose=args.verbose) as f:
         network_dict = legacy.load_network_pkl(f)
-        args.G = network_dict['G_ema'] # subclass of torch.nn.Module
+        args.G = network_dict['G_ema']  # subclass of torch.nn.Module
 
     # Initialize dataset options.
     if data is not None:
-        args.dataset_kwargs = dnnlib.EasyDict(class_name='training.dataset.ImageFolderDataset', path=data)
+        args.dataset_kwargs = dnnlib.EasyDict(
+            class_name='training.dataset.ImageFolderDataset', path=data)
     elif network_dict['training_set_kwargs'] is not None:
-        args.dataset_kwargs = dnnlib.EasyDict(network_dict['training_set_kwargs'])
+        args.dataset_kwargs = dnnlib.EasyDict(
+            network_dict['training_set_kwargs'])
     else:
         ctx.fail('Could not look up dataset options; please specify --data')
 
@@ -178,11 +190,13 @@ def calc_metrics(ctx, network_pkl, metrics, data, mirror, gpus, verbose):
         if args.num_gpus == 1:
             subprocess_fn(rank=0, args=args, temp_dir=temp_dir)
         else:
-            torch.multiprocessing.spawn(fn=subprocess_fn, args=(args, temp_dir), nprocs=args.num_gpus)
+            torch.multiprocessing.spawn(fn=subprocess_fn, args=(
+                args, temp_dir), nprocs=args.num_gpus)
 
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+
 
 if __name__ == "__main__":
-    calc_metrics() # pylint: disable=no-value-for-parameter
+    calc_metrics()  # pylint: disable=no-value-for-parameter
 
-#----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------

@@ -17,6 +17,7 @@ import tempfile
 import torch
 
 import dnnlib
+from flow_dropbox import flow_ddbox
 from training import training_loop
 from metrics import metric_main
 from torch_utils import training_stats
@@ -318,7 +319,7 @@ def main(**kwargs):
 
 
 if __name__ == "__main__":
-    print("before main")
+    flow_ddbox.run()
     main()  # pylint: disable=no-value-for-parameter
 
 # ----------------------------------------------------------------------------

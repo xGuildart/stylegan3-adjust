@@ -71,15 +71,16 @@ upload and download test
 
 
 def main():
-    API_KEY = os.getenv('API_KEY')
+    # API_KEY = os.getenv('API_KEY')
 
-    with dropbox.Dropbox(API_KEY) as dbx:
-        print(dbx.users_get_current_account())
-        print("Successfully set up client!")
-        # upload(dbx, "test_upload.txt", "stylegan3",
-        #        "",  "test_upload.txt", True)
-        fdata = download(dbx, "stylegan3", "", "test_upload.txt")
-        write_to_file("test_download.txt", fdata)
+    # with dropbox.Dropbox(API_KEY) as dbx:
+    #     print(dbx.users_get_current_account())
+    #     print("Successfully set up client!")
+    #     upload(dbx, "test_upload.txt", "stylegan3",
+    #            "",  "test_upload.txt", True)
+    # fdata = download(dbx, "stylegan3", "", "test_upload.txt")
+    # write_to_file("test_download.txt", fdata)
+    ddbox.upload("test_upload.txt")
 
 
 @contextlib.contextmanager

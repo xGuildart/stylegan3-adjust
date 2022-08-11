@@ -32,6 +32,7 @@ class flow_ddbox:
         with dropbox.Dropbox(oauth2_access_token=oauth_result.access_token) as dbx:
             dbx.users_get_current_account()
             print("Successfully set up client!")
+            print(oauth_result.access_token)
             os.environ["API_KEY"] = oauth_result.access_token
 
 

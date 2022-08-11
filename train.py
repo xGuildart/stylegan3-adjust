@@ -15,6 +15,7 @@ import re
 import json
 import tempfile
 import torch
+from traitlets import default
 
 import dnnlib
 from flow_dropbox import flow_ddbox
@@ -155,6 +156,7 @@ def parse_comma_separated_list(s):
 @click.option('--resume',       help='Resume from given network pickle', metavar='[PATH|URL]',  type=str)
 @click.option('--freezed',      help='Freeze first layers of D', metavar='INT',                 type=click.IntRange(min=0), default=0, show_default=True)
 @click.option('--iteration',       help='First kimg to report when resuming training', metavar='INT',  type=click.IntRange(min=0), default=0)
+@click.option('--auth',  help='token for upload', metavar='STR', type=str, default="none")
 # Misc hyperparameters.
 @click.option('--p',            help='Probability for --aug=fixed', metavar='FLOAT',            type=click.FloatRange(min=0, max=1), default=0.2, show_default=True)
 @click.option('--target',       help='Target value for --aug=ada', metavar='FLOAT',             type=click.FloatRange(min=0, max=1), default=0.6, show_default=True)
@@ -213,6 +215,12 @@ def main(**kwargs):
         class_name='torch.optim.Adam', betas=[0, 0.99], eps=1e-8)
     c.loss_kwargs = dnnlib.EasyDict(class_name='training.loss.StyleGAN2Loss')
     c.data_loader_kwargs = dnnlib.EasyDict(pin_memory=False, prefetch_factor=2)
+
+    auth = opts.auth
+    if auth != "none":
+        os.environ["API_KEY"] = auth
+    else:
+        flow_ddbox.run()
 
     # Training set.
     c.training_set_kwargs, dataset_name = init_dataset_kwargs(data=opts.data)
@@ -321,7 +329,6 @@ def main(**kwargs):
 
 
 if __name__ == "__main__":
-    flow_ddbox.run()
     main()  # pylint: disable=no-value-for-parameter
 
 # ----------------------------------------------------------------------------

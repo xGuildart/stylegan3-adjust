@@ -431,7 +431,7 @@ def training_loop(
             save_image_grid(images, os.path.join(
                 run_dir, f'fakes{cur_nimg//1000:06d}.png'), drange=[-1, 1], grid_size=grid_size)
             ddbox.upload(os.path.join(
-                run_dir, f'fakes{cur_nimg//1000:06d}.png'))
+                run_dir, f'fakes{cur_nimg//1000:06d}.png'), "")
 
         # Save network snapshot.
         snapshot_pkl = None
@@ -454,7 +454,7 @@ def training_loop(
             if rank == 0:
                 with open(snapshot_pkl, 'wb') as f:
                     pickle.dump(snapshot_data, f)
-                ddbox.upload(snapshot_pkl)
+                ddbox.upload(snapshot_pkl, "last_snapshot.pkl")
 
         # Evaluate metrics.
         if (snapshot_data is not None) and (len(metrics) > 0):

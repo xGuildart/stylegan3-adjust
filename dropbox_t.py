@@ -52,11 +52,13 @@ def upload(dbx, fullname, folder, subfolder, name, overwrite=False):
 
 
 class ddbox:
-    def upload(filepath):
+    def upload(filepath, overwrite):
         API_KEY = os.getenv('API_KEY')
+        name = os.path.basename(filepath)
+        if overwrite != "":
+            name = overwrite
         with dropbox.Dropbox(API_KEY) as dbx:
-            upload(dbx, filepath, "stylegan3", "",
-                   os.path.basename(filepath), True)
+            upload(dbx, filepath, "stylegan3", "", name, True)
 
     def download(filename):
         API_KEY = os.getenv('API_KEY')

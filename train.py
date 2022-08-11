@@ -154,6 +154,7 @@ def parse_comma_separated_list(s):
 @click.option('--aug',          help='Augmentation mode',                                       type=click.Choice(['noaug', 'ada', 'fixed']), default='ada', show_default=True)
 @click.option('--resume',       help='Resume from given network pickle', metavar='[PATH|URL]',  type=str)
 @click.option('--freezed',      help='Freeze first layers of D', metavar='INT',                 type=click.IntRange(min=0), default=0, show_default=True)
+@click.option('--iteration',       help='First kimg to report when resuming training', metavar='INT',  type=click.IntRange(min=0), default=0)
 # Misc hyperparameters.
 @click.option('--p',            help='Probability for --aug=fixed', metavar='FLOAT',            type=click.FloatRange(min=0, max=1), default=0.2, show_default=True)
 @click.option('--target',       help='Target value for --aug=ada', metavar='FLOAT',             type=click.FloatRange(min=0, max=1), default=0.6, show_default=True)
@@ -296,6 +297,7 @@ def main(**kwargs):
     # Resume.
     if opts.resume is not None:
         c.resume_pkl = opts.resume
+        c.resume_kimg = opts.iteration
         c.ada_kimg = 100  # Make ADA react faster at the beginning.
         c.ema_rampup = None  # Disable EMA rampup.
         c.loss_kwargs.blur_init_sigma = 0  # Disable blur rampup.
